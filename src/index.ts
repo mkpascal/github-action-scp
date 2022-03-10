@@ -86,26 +86,36 @@ async function connect(
   const ssh = new NodeSSH();
   console.log(`Establishing a SSH connection to ${host}.`);
 
-  try {
-    const config: Config = {
-      host: host,
-      port: port,
-      username: username,
-      password: password,
-      passphrase: passphrase,
-      tryKeyboard: tryKeyboard,
-      onKeyboardInteractive: tryKeyboard ? keyboardFunction(password) : null
-    };
-    if (privateKey) {
-      console.log('using provided private key');
-      config.privateKey = privateKey;
+int count = 0;
+int maxTries = 3;
+while(true) {
+    try {
+      console.log(`🤝 Testing connection to ${host}.`);
+
+      const config: Config = {
+        host: host,
+        port: port,
+        username: username,
+        password: password,
+        passphrase: passphrase,
+        tryKeyboard: tryKeyboard,
+        onKeyboardInteractive: tryKeyboard ? keyboardFunction(password) : null
+      };
+      if (privateKey) {
+        console.log('using provided private key');
+        config.privateKey = privateKey;
+      }
+      await ssh.connect(config);
+      console.log(`🤝 Connected to ${host}.`);
+    } catch (SomeException e) {
+        console.error(`Fail after 3 times.`, err);
+        console.error(`⚠️ The GitHub Action couldn't connect to ${host}.`, err);
+        core.setFailed(err.message);
+        if (++count == maxTries) throw e;
     }
-    await ssh.connect(config);
-    console.log(`🤝 Connected to ${host}.`);
-  } catch (err) {
-    console.error(`⚠️ The GitHub Action couldn't connect to ${host}.`, err);
-    core.setFailed(err.message);
-  }
+}
+ 
+
 
   return ssh;
 }
