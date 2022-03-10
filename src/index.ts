@@ -107,7 +107,7 @@ while(true) {
       }
       await ssh.connect(config);
       console.log(`🤝 Connected to ${host}.`);
-    } catch (SomeException e) {
+    } catch (err) {
         console.error(`Fail after 3 times.`, err);
         console.error(`⚠️ The GitHub Action couldn't connect to ${host}.`, err);
         core.setFailed(err.message);
